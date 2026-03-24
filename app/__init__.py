@@ -24,8 +24,8 @@ def create_app():
     app.config["SECRET_KEY"] = "supersecretkey"
 
     # Database
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:osama4545@localhost/flask_authentication"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:osama4545@localhost/flask_apis"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 
     # MAIL CONFIG
     app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -34,7 +34,8 @@ def create_app():
     app.config["MAIL_USERNAME"] = "seth73602@gmail.com"
     app.config["MAIL_PASSWORD"] = "ayht idek ajkv rfgl"
     app.config["MAIL_DEFAULT_SENDER"] = "seth73602@gmail.com"
-
+    app.config['DEBUG'] = True
+    app.config['SQLALCHEMY_ECHO'] = True
     db.init_app(app)
     mail.init_app(app)
 

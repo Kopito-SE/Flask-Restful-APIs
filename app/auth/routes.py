@@ -135,7 +135,7 @@ def resend_code():
 
     msg = Message(
         'New Verification Code',
-        recipient=[email]
+        recipients=[email]
     )
     msg.body = f"Your new verification code is {code}\n This code expires in 5 min."
     mail.send(msg)
@@ -164,7 +164,7 @@ def login():
         'user_id':user.id,
         'username':user.username,
         'exp':datetime.utcnow() + timedelta(hours=24)
-    }, current_app.config['SECRET_KEY'], algorithm=['HS256'])
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
     return jsonify({
         "message":"Login Successfull",

@@ -12,6 +12,7 @@ class User(db.Model):
     verification_code = db.Column(db.String(6), nullable = True)
     code_expiry = db.Column(db.DateTime, nullable = True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow())
+    
 
 class Category(db.Model):
     __tablename__ = 'category'
