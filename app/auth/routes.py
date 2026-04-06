@@ -235,6 +235,11 @@ def google_callback():
         email = user_info["email"]
         google_id = user_info["sub"]  # 'sub' is Google's unique identifier
         username = user_info.get("name", email.split("@")[0])
+        
+        # ✅ Clean username: remove spaces, make safe
+        username = username.replace(" ", "_").lower()
+        # Remove any special characters (keep letters, numbers, underscore)
+        username = ''.join(c for c in username if c.isalnum() or c == '_')
 
         user = User.query.filter_by(google_id=google_id).first()
 
@@ -244,8 +249,18 @@ def google_callback():
             if user:
                 user.auth_provider = 'both'
                 user.google_id = google_id
+                # ✅ Ensure existing user has a username
+                if not user.username:
+                    user.username = username
                 db.session.commit()
             else:
+                # ✅ Ensure unique username for brand new user
+                base_username = username
+                counter = 1
+                while User.query.filter_by(username=username).first():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+                
                 # Brand new user - create with Google
                 user = User(
                     email=email,
@@ -257,10 +272,16 @@ def google_callback():
                 )
                 db.session.add(user)
                 db.session.commit()
+        
+        # ✅ Double-check username exists (just in case)
+        if not user.username:
+            user.username = email.split("@")[0]
+            db.session.commit()
 
         jwt_token = jwt.encode({
             'user_id': user.id,
             'username': user.username,
+            'email': user.email,  # ✅ Added email to token (optional but helpful)
             'exp': datetime.utcnow() + timedelta(hours=24)
         }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
@@ -289,11 +310,21 @@ def get_profile(current_user):
         "user":{
             "id": current_user.id,
             "username": current_user.username,
+            
             "email": current_user.email,
             "verified": current_user.verified,
             "created_at": str(current_user.created_at) if current_user.created_at else None
         }
     }),200
+@api_auth.route("/user/stats", methods=["GET"])
+@token_required
+def get_user_stats(current_user):
+    """Get user statistics"""
+    return jsonify({
+        "total_logins": current_user.login_count or 0,
+        "last_login": str(current_user.last_login) if current_user.last_login else None,
+        "active_sessions": 1  # You can track this
+    }), 200
 
 
 @api_auth.route("/profile", methods=["PUT"])

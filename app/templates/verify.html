@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Email - Auth System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Verify Your Email</h2>
+        
+        <input id="verify_email" placeholder="Email" type="email">
+        <input id="verify_code" placeholder="Verification Code">
+        
+        <button onclick="verifyEmail()">Verify Email</button>
+        <button onclick="resendCode()" style="margin-top: 10px; background: #6c757d;">Resend Code</button>
+        
+        <div class="links" style="margin-top: 15px;">
+            <a href="/login">Back to Login</a>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    
+    <script>
+        // Auto-fill email from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailFromUrl = urlParams.get('email');
+        if (emailFromUrl) {
+            document.getElementById('verify_email').value = emailFromUrl;
+        }
+    </script>
+</body>
+</html>

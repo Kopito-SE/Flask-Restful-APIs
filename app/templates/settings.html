@@ -1,62 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>Settings - Auth System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
     <div class="app">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">CompanyName</div>
             </div>
             <nav class="nav-menu">
-              <a href="#" class="nav-item active" data-page="dashboard">
-               <span>🏠</span> Dashboard
-              </a>
-              <a href="#" class="nav-item" data-page="profile">
-               <span>👤</span> Profile
-              </a>
-              <a href="#" class="nav-item" data-page="settings">
-               <span>⚙️</span> Settings
-              </a>
+                <a href="/dashboard" class="nav-item">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="/profile" class="nav-item">
+                    <span>👤</span> Profile
+                </a>
+                <a href="/settings" class="nav-item active">
+                    <span>⚙️</span> Settings
+                </a>
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <h1 class="page-title">Dashboard</h1>
+                <h1 class="page-title">Settings</h1>
                 <div class="user-menu">
                     <div class="avatar" id="userAvatar">U</div>
                 </div>
             </header>
 
             <div class="content">
-                
-             <div class="welcome-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 30px; border-radius: 12px; margin-bottom: 32px;">
-               <h2 style="color: white; margin-bottom: 8px;">Welcome Back! 👋</h2>
-               <p style="opacity: 0.9; margin: 0;"></p>
-             </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Visits</div>
-                        <div class="stat-value">1,234</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Active Sessions</div>
-                        <div class="stat-value">3</div>
-                    </div>
-                </div>
-
-                <!-- Profile Section -->
-                <div class="profile-card">
-                    <div class="card-header">Profile Information</div>
-                    <div class="card-body" id="profile"></div>
-                </div>
-
-                <!-- Settings -->
                 <div class="settings-section">
                     <div class="section-title">Update Profile</div>
                     <div class="form-group">
@@ -97,7 +72,6 @@
             </div>
         </main>
     </div>
-
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - Auth System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Create Account</h2>
+        
+        <!-- Regular Registration Form -->
+        <div class="register-form">
+            <input id="reg_email" placeholder="Email" type="email">
+            <input id="reg_username" placeholder="Username">
+            <input type="password" id="reg_password" placeholder="Password">
+            <button onclick="register()">Register</button>
+        </div>
+        
+        <!-- Divider -->
+        <div class="divider">
+            <span>or</span>
+        </div>
+        
+        <!-- Google Sign-Up Button -->
+        <div class="google-auth">
+            <a href="/api/auth/login/google" class="google-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
+                Sign up with Google
+            </a>
+        </div>
+        
+        <div class="links">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

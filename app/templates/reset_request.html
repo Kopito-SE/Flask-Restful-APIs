@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Password - Auth System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Reset Password</h2>
+        
+        <input id="reset_email" placeholder="Email">
+        <button onclick="requestReset()">Send Reset Code</button>
+        
+        <div class="links">
+            <a href="/login">Back to Login</a>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

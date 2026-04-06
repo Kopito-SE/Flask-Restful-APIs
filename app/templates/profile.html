@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - Auth System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">CompanyName</div>
+            </div>
+            <nav class="nav-menu">
+                <a href="/dashboard" class="nav-item">
+                    <span>🏠</span> Dashboard
+                </a>
+                <a href="/profile" class="nav-item active">
+                    <span>👤</span> Profile
+                </a>
+                <a href="/settings" class="nav-item">
+                    <span>⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <h1 class="page-title">Profile</h1>
+                <div class="user-menu">
+                    <div class="avatar" id="userAvatar">U</div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="profile-card">
+                    <div class="card-header">Profile Information</div>
+                    <div class="card-body" id="profile"></div>
+                </div>
+                <div id="message"></div>
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

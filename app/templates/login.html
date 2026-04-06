@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Auth System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome Back</h2>
+        
+        <input id="login_username" placeholder="Username or Email">
+        <input type="password" id="login_password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        
+        <div class="divider">
+            <span>or</span>
+        </div>
+        
+        <div class="google-auth">
+            <a href="/api/auth/login/google" class="google-btn">
+                <img class="google-icon" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Login with Google
+            </a>
+        </div>
+        
+        <div class="links">
+            <a href="/register">Create an account</a>
+            <a href="/reset-request">Forgot password?</a>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>
