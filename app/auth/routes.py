@@ -1,4 +1,5 @@
 import os
+import re
 
 from flask import Blueprint, request, redirect, url_for, jsonify, current_app 
 from authlib.integrations.flask_client import OAuth
@@ -10,13 +11,22 @@ from datetime import datetime, timedelta
 from functools import wraps
 from ..models import User
 from .. import db, mail  # Added mail import
-import os
 
 # Api Blueprint
 api_auth = Blueprint("api_auth", __name__, url_prefix="/api/auth")
 
 # OAuth Setup
 oauth = OAuth()
+
+EMAIL_PATTERN = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+
+
+def is_valid_email(email):
+    return bool(email and EMAIL_PATTERN.fullmatch(email))
+
+
+def normalize_email(email):
+    return (email or "").strip().lower()
 
 # Google OAuth registration
 def init_google_oauth(app):
@@ -62,7 +72,10 @@ def register():
      # Check the required fields
     if not all(data.get(field) for field in required):
         return jsonify({"error":"Missing required fields","required":required}),400
-    email, username, password = data["email"], data["username"], data["password"]
+    email, username, password = normalize_email(data.get("email")), data.get("username"), data.get("password")
+
+    if not is_valid_email(email):
+        return jsonify({"error": "Invalid email format"}), 400
 
      # Validate password
     if len(password)  < 6:
@@ -71,7 +84,7 @@ def register():
      # Check existing User
     if User.query.filter_by(username=username).first():
         return jsonify({"error":"Username already Exist"}),409
-    if User.query.filter_by(email=email).first():
+    if User.query.filter(db.func.lower(User.email) == email).first():
         return jsonify({"error":"Email already registered"}),409
 
      # Create user
@@ -116,11 +129,11 @@ def verify_email():
     if not data or not data.get("email") or not data.get("code"):
         return jsonify({"error":"Email and verification code required"}),400
     
-    email = data.get("email")
+    email = normalize_email(data.get("email"))
     code = data.get("code")
 
     # Find unverified user
-    user = User.query.filter_by(email=email, verified=False).first()
+    user = User.query.filter(db.func.lower(User.email) == email, User.verified == False).first()
 
     if not user:
         return jsonify({"error":"User not found or already verified"}),404
@@ -148,8 +161,8 @@ def resend_code():
     if not data or not data.get("email"):
         return jsonify({"error":"Email required"})
     
-    email = data.get("email")
-    user = User.query.filter_by(email=email, verified = False).first()
+    email = normalize_email(data.get("email"))
+    user = User.query.filter(db.func.lower(User.email) == email, User.verified == False).first()
 
     if not user:
         return jsonify({"error":"User not found or already verified"}),404
@@ -183,13 +196,19 @@ def login():
     if not data:
         return jsonify({"error":"No Data provided"}),400
     
-    username = data.get("username")
+    raw_email = data.get("email")
+    if not raw_email and data.get("username"):
+        raw_email = data.get("username")
+    email = normalize_email(raw_email)
     password = data.get("password")
 
-    if not username or not password:
-        return jsonify({"error":"Username and Password required"}),400
+    if not email or not password:
+        return jsonify({"error":"Email and Password required"}),400
 
-    user = User.query.filter_by(username=username).first()
+    if not is_valid_email(email):
+        return jsonify({"error": "Invalid email format"}), 400
+
+    user = User.query.filter(db.func.lower(User.email) == email).first()
 
     if not user:
         return jsonify({"error":"Invalid Credentials"}),401
@@ -405,9 +424,9 @@ def request_password_reset():
     if not data or not data.get("email"):
         return jsonify({"error":"Email is required"}),400
 
-    email = data.get("email")
+    email = normalize_email(data.get("email"))
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter(db.func.lower(User.email) == email).first()
 
     if not user:
         return jsonify({"error":"User not found"}),404
@@ -447,11 +466,11 @@ def reset_password():
     if not all(data.get(field) for field in required):
         return jsonify({"error":"Email,Code and New_Password required"}), 400
     
-    email = data.get("email")
+    email = normalize_email(data.get("email"))
     code = data.get("code")
     new_password = data.get("new_password")
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter(db.func.lower(User.email) == email).first()
 
     if not user:
         return jsonify({"error":"User not found"}),404

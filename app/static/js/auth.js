@@ -85,13 +85,25 @@ async function resendCode() {
 
 // LOGIN
 async function login() {
-    let username = document.getElementById("login_username").value
+    const emailInput = document.getElementById("login_email") || document.getElementById("login_username")
+    if (!emailInput) {
+        message("Login form failed to load. Please refresh the page.")
+        return
+    }
+
+    let email = emailInput.value.trim().toLowerCase()
     let password = document.getElementById("login_password").value
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+    if (!emailPattern.test(email)) {
+        message("Enter a valid email address")
+        return
+    }
     
     let res = await fetch(`${API}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, password })
     })
     
     let data = await res.json()
