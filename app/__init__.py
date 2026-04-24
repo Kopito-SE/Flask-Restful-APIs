@@ -93,7 +93,8 @@ def create_app():
     # GOOGLE OAUTH CONFIG
     app.config["GOOGLE_CLIENT_ID"] = os.environ.get("GOOGLE_CLIENT_ID")
     app.config["GOOGLE_CLIENT_SECRET"] = os.environ.get("GOOGLE_CLIENT_SECRET")
-
+    # FRONTEND URL CONFIG
+    app.config["FRONTEND_URL"] = os.environ.get("FRONTEND_URL")
     # Initialize extensions with app
     db.init_app(app)
     mail.init_app(app)

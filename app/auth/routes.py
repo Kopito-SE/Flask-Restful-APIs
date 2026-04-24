@@ -285,10 +285,7 @@ def login():
 
 
 def google_login():
-    redirect_uri = os.environ.get(
-        'GOOGLE_REDIRECT_URI',
-        'http://127.0.0.1:5000/api/auth/login/google/callback'
-    )
+    redirect_uri = os.environ.get("GOOGLE_REDIRECT_URI")
     return oauth.google.authorize_redirect(redirect_uri)
 @api_auth.route("/login/google/callback")
 def google_callback():
@@ -357,7 +354,7 @@ def google_callback():
         }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
         # Redirect to frontend dashboard with token
-        frontend_url = current_app.config.get('FRONTEND_URL', 'http://localhost:5000')
+        frontend_url = current_app.config.get('FRONTEND_URL')
         redirect_url = f"{frontend_url}/dashboard?token={jwt_token}"
         return redirect(redirect_url)
         
