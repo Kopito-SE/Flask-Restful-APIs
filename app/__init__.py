@@ -45,6 +45,24 @@ def _add_oauth_columns():
     except Exception as e:
         print(f"Migration warning: {e}")
 
+
+def _add_user_stats_columns():
+    """Add user stats columns if they don't exist."""
+    try:
+        inspector = inspect(db.engine)
+        columns = [col["name"] for col in inspector.get_columns("user")]
+
+        with db.engine.begin() as conn:
+            if "login_count" not in columns:
+                conn.execute(text("ALTER TABLE user ADD COLUMN login_count INTEGER NOT NULL DEFAULT 0"))
+                print("Added login_count column")
+
+            if "last_login" not in columns:
+                conn.execute(text("ALTER TABLE user ADD COLUMN last_login DATETIME NULL"))
+                print("Added last_login column")
+    except Exception as e:
+        print(f"Stats migration warning: {e}")
+
 def create_app():
    
     app = Flask(__name__)
@@ -98,6 +116,7 @@ def create_app():
         
         # Add OAuth columns to User table
         _add_oauth_columns()
+        _add_user_stats_columns()
 
     # Register Blueprints
     

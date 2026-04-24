@@ -1,7 +1,7 @@
 import os
 import re
 
-from flask import Blueprint, request, redirect, url_for, jsonify, current_app 
+from flask import Blueprint, request, redirect, url_for, jsonify, current_app, g
 from authlib.integrations.flask_client import OAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
@@ -9,7 +9,7 @@ from flask_mail import Message
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from ..models import User
+from ..models import User, UserSession
 from .. import db, mail  # Added mail import
 
 # Api Blueprint
@@ -19,6 +19,7 @@ api_auth = Blueprint("api_auth", __name__, url_prefix="/api/auth")
 oauth = OAuth()
 
 EMAIL_PATTERN = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
+TOKEN_TTL_HOURS = 24
 
 
 def is_valid_email(email):
@@ -27,6 +28,26 @@ def is_valid_email(email):
 
 def normalize_email(email):
     return (email or "").strip().lower()
+
+
+def create_login_session(user_id):
+    now = datetime.utcnow()
+    session = UserSession(
+        user_id=user_id,
+        expires_at=now + timedelta(hours=TOKEN_TTL_HOURS)
+    )
+    db.session.add(session)
+    db.session.flush()
+    return session
+
+
+def get_active_sessions_count(user_id):
+    now = datetime.utcnow()
+    return UserSession.query.filter(
+        UserSession.user_id == user_id,
+        UserSession.revoked_at.is_(None),
+        UserSession.expires_at > now
+    ).count()
 
 # Google OAuth registration
 def init_google_oauth(app):
@@ -54,6 +75,18 @@ def token_required(f):
             user = User.query.get(data["user_id"])
             if not user:
                 return jsonify({"error":"User not found"}), 404
+            g.current_session = None
+            session_id = data.get("session_id")
+            if session_id:
+                user_session = UserSession.query.filter(
+                    UserSession.id == session_id,
+                    UserSession.user_id == user.id,
+                    UserSession.revoked_at.is_(None),
+                    UserSession.expires_at > datetime.utcnow()
+                ).first()
+                if not user_session:
+                    return jsonify({"error": "Session expired"}), 401
+                g.current_session = user_session
         except jwt.ExpiredSignatureError:
             return jsonify({"error":"Token expired"}),401
         except jwt.InvalidTokenError:
@@ -222,12 +255,18 @@ def login():
     if not user.verified:
         return jsonify({"error":"Please Verify your email first"}),403
 
+    user.login_count = (user.login_count or 0) + 1
+    user.last_login = datetime.utcnow()
+    user_session = create_login_session(user.id)
+
     # Generate JWT tOKENS
     token = jwt.encode({
         'user_id':user.id,
         'username':user.username,
-        'exp':datetime.utcnow() + timedelta(hours=24)
+        'session_id': user_session.id,
+        'exp':datetime.utcnow() + timedelta(hours=TOKEN_TTL_HOURS)
     }, current_app.config['SECRET_KEY'], algorithm='HS256')
+    db.session.commit()
 
     return jsonify({
         "message":"Login Successful",
@@ -304,11 +343,17 @@ def google_callback():
             user.username = email.split("@")[0]
             db.session.commit()
 
+        user.login_count = (user.login_count or 0) + 1
+        user.last_login = datetime.utcnow()
+        user_session = create_login_session(user.id)
+        db.session.commit()
+
         jwt_token = jwt.encode({
             'user_id': user.id,
             'username': user.username,
             'email': user.email,  # ✅ Added email to token (optional but helpful)
-            'exp': datetime.utcnow() + timedelta(hours=24)
+            'session_id': user_session.id,
+            'exp': datetime.utcnow() + timedelta(hours=TOKEN_TTL_HOURS)
         }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
         # Redirect to frontend dashboard with token
@@ -321,7 +366,12 @@ def google_callback():
 @api_auth.route("/logout", methods=["POST"])
 @token_required
 def logout(current_user):
-    """Logout user (client-side: discard token)"""
+    """Logout user by revoking the current session."""
+    current_session = getattr(g, "current_session", None)
+    if current_session and current_session.revoked_at is None:
+        current_session.revoked_at = datetime.utcnow()
+        db.session.commit()
+
     return jsonify({
         "message":"Logged out Successfully"
     }), 200
@@ -339,17 +389,21 @@ def get_profile(current_user):
             
             "email": current_user.email,
             "verified": current_user.verified,
-            "created_at": str(current_user.created_at) if current_user.created_at else None
+            "created_at": str(current_user.created_at) if current_user.created_at else None,
+            "auth_provider": current_user.auth_provider
         }
     }),200
 @api_auth.route("/user/stats", methods=["GET"])
 @token_required
 def get_user_stats(current_user):
     """Get user statistics"""
+    active_sessions = get_active_sessions_count(current_user.id)
+    total_visits = current_user.login_count or 0
     return jsonify({
-        "total_logins": current_user.login_count or 0,
+        "total_visits": total_visits,
+        "total_logins": total_visits,
         "last_login": str(current_user.last_login) if current_user.last_login else None,
-        "active_sessions": 1  # You can track this
+        "active_sessions": active_sessions
     }), 200
 
 

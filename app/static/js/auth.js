@@ -17,6 +17,14 @@ function authHeaders() {
     return token ? { "Authorization": `Bearer ${token}` } : {}
 }
 
+function clearLoginFields() {
+    const emailInput = document.getElementById("login_email") || document.getElementById("login_username")
+    const passwordInput = document.getElementById("login_password")
+
+    if (emailInput) emailInput.value = ""
+    if (passwordInput) passwordInput.value = ""
+}
+
 // REGISTER
 async function register() {
     let email = document.getElementById("reg_email").value
@@ -281,4 +289,13 @@ async function changePassword() {
 // Auto-load profile when viewing the dashboard with a token
 if (window.location.pathname === "/dashboard" && localStorage.getItem("token")) {
     loadProfile()
+}
+
+if (window.location.pathname === "/login" || window.location.pathname === "/") {
+    document.addEventListener("DOMContentLoaded", () => {
+        clearLoginFields()
+        // A short delay helps override browser autofill that runs after initial paint.
+        setTimeout(clearLoginFields, 50)
+    })
+    window.addEventListener("pageshow", clearLoginFields)
 }

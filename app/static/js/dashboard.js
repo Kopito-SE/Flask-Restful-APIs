@@ -63,6 +63,14 @@ function updateAvatar(name) {
     }
 }
 
+function updateStatsCards(totalVisits, activeSessions) {
+    const totalVisitsEl = document.getElementById('totalVisits');
+    const activeSessionsEl = document.getElementById('activeSessions');
+
+    if (totalVisitsEl) totalVisitsEl.textContent = Number(totalVisits || 0).toLocaleString();
+    if (activeSessionsEl) activeSessionsEl.textContent = Number(activeSessions || 0).toLocaleString();
+}
+
 // Main function to load profile
 async function loadProfile() {
     console.log('🟢 Loading profile...');
@@ -149,6 +157,36 @@ async function loadProfile() {
     } catch (error) {
         console.error('Error loading profile:', error);
         showMessage('Error loading profile: ' + error.message, true);
+    }
+}
+
+async function loadUserStats() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${API}/user/stats`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await response.json();
+        if (response.ok) {
+            updateStatsCards(data.total_visits, data.active_sessions);
+        } else {
+            console.error('Stats API error:', data);
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
     }
 }
 
@@ -295,8 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Load profile data
+    // Load profile and stats data
     loadProfile();
+    loadUserStats();
     
     // Attach event listeners
     const updateBtn = document.getElementById('updateProfileBtn');
