@@ -1,6 +1,11 @@
 # Flask RESTful APIs (Auth + Dashboard)
 
 A Flask app that provides authentication APIs (email/password + Google OAuth), email verification, password reset, JWT-protected profile endpoints, and a simple dashboard UI that shows real stats (total visits + active sessions).
+##Postman API Documentation
+https://documenter.getpostman.com/view/53408260/2sBXikpXfy
+
+##Live Deployment
+https://flask-restful-apis-1.onrender.com
 
 ## Features
 - Register + email verification (OTP code)
@@ -69,6 +74,5 @@ Open:
 - Logout revokes the current server-side session linked to the JWT.
 - Dashboard fetches stats from `GET /api/auth/user/stats`.
 
-## License
-Add your preferred license (MIT recommended).
+
 
